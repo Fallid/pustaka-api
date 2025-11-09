@@ -9,12 +9,14 @@ import (
 func main() {
 	router := gin.Default()
 
-	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H {
-			"name": "Ahmad Naufal",
-			"bio": "Software junior",
-		})
-	})
+	router.GET("/", rootHandler)
 
 	router.Run(":3000")
+}
+
+func rootHandler(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"name": "Ahmad Naufal",
+		"bio":  "Software junior",
+	})
 }
