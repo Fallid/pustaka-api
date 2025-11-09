@@ -25,17 +25,69 @@ func main() {
 	db.AutoMigrate(books.Book{})
 	
 	//CRUD
-	book := books.Book{}
-	book.Title = "Manusia Kuat"
-	book.Price = 90000
-	book.Rating = 5
-	book.Description = "Lorem ipsum"
+	// book := books.Book{}
+	// book.Title = "Manusia Lemah"
+	// book.Price = 90000
+	// book.Rating = 5
+	// book.Description = "Lorem ipsum"
 
-	err = db.Create(&book).Error
+	// err = db.Create(&book).Error
 
+	// if err != nil {
+	// 	fmt.Print("Error Creating book record")
+	// }
+
+	var resultBook books.Book
+	err = db.First(&resultBook).Error
 	if err != nil {
-		fmt.Print("Error Creating book record")
+		fmt.Println("========================")
+		fmt.Println("Error finding book record")
+		fmt.Println("========================")
 	}
+	
+	fmt.Println("========================")
+	fmt.Println("Title: ", resultBook.Title)
+	fmt.Println("price: ", resultBook.Price)
+	fmt.Println("rating: ", resultBook.Rating)
+	fmt.Println("========================")
+
+	var resultBook1 books.Book
+	err = db.Last(&resultBook1).Error
+	if err != nil {
+		fmt.Println("========================")
+		fmt.Println("Error finding book record")
+		fmt.Println("========================")
+	 }
+	
+	fmt.Println("========================")
+	fmt.Println("Title: ", resultBook1.Title)
+	fmt.Println("price: ", resultBook1.Price)
+	fmt.Println("rating: ", resultBook1.Rating)
+
+	 var updateBook books.Book
+	 err = db.Where("id = ?", 1).First(&updateBook).Error
+	 if err != nil {
+		fmt.Println("========================")
+		fmt.Println("Error finding book record")
+		fmt.Println("========================")
+	 }
+
+	 updateBook.Title = "Manusia Kuat (revised)"
+	 err = db.Save(&updateBook).Error
+	 if err != nil {
+		fmt.Println("========================")
+		fmt.Println("Error finding book record")
+		fmt.Println("========================")
+	 }
+	 
+	 var deleteBook books.Book
+	 err = db.Where("id = ?", 3).Delete(&deleteBook).Error
+	 if err != nil {
+		fmt.Println("========================")
+		fmt.Println("Error finding book record")
+		fmt.Println("========================")
+	 }
+
 
 	router := gin.Default()
 
