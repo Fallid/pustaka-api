@@ -1,10 +1,12 @@
 package main
 
 import (
-	"log"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 func main() {
@@ -54,22 +56,41 @@ func queryHandler(ctx *gin.Context) {
 }
 
 type bookInput struct {
-	Title string
-	Price int
-	SubTitle  string `json:"sub_title"` // alias as sub_title
+	Title    string      `json:"title" binding:"required"`
+	Price    int `json:"price" binding:"required,number"`
+	SubTitle string      `json:"sub_title"` // alias as sub_title
 }
 
 func postBookHandler(ctx *gin.Context) {
 	var bookInput bookInput
 
 	err := ctx.ShouldBindBodyWithJSON(&bookInput)
+
 	if err != nil {
-		log.Fatal(err)
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			errorMessages := []string{}
+			for _, e := range ve {
+				errorMessage := fmt.Sprintf("Error on field %s, condition: %s", e.Field(), e.ActualTag())
+				errorMessages = append(errorMessages, errorMessage)
+			}
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"status": "fail",
+				"errors": errorMessages,
+			})
+			return
+		}
+		// For other errors (e.g. JSON parse errors)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"status": "fail",
+			"error":  err.Error(),
+		})
+		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"title": bookInput.Title,
-		"price": bookInput.Price,
+		"title":     bookInput.Title,
+		"price":     bookInput.Price,
 		"sub_title": bookInput.SubTitle,
 	})
 }
