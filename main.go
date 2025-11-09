@@ -15,6 +15,8 @@ func main() {
 	
 	router.GET("/book/:bookId/author/:authorId", authorsHandler)
 
+	router.GET("/query", queryHandler)
+
 	router.Run(":3000")
 }
 
@@ -38,4 +40,10 @@ func authorsHandler(ctx *gin.Context) {
 		"authorId": authorId,
 		"bookId": bookId,
 	})
+}
+
+func queryHandler(ctx *gin.Context) {
+	title := ctx.Query("title")
+	author := ctx.Query("author")
+	ctx.JSON(http.StatusOK, gin.H{"title": title, "author": author})
 }
