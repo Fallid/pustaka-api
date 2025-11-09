@@ -11,7 +11,9 @@ func main() {
 
 	router.GET("/", rootHandler)
 
-	router.GET("/book/:id", booksHandler)
+	router.GET("/book/:bookId", booksHandler)
+	
+	router.GET("/book/:bookId/author/:authorId", authorsHandler)
 
 	router.Run(":3000")
 }
@@ -23,7 +25,17 @@ func rootHandler(ctx *gin.Context) {
 	})
 }
 
-func booksHandler(ctx *gin.Context)  {
-	id := ctx.Param("id")
+func booksHandler(ctx *gin.Context) {
+	id := ctx.Param("bookId")
 	ctx.JSON(http.StatusOK, gin.H{"id": id})
+}
+
+func authorsHandler(ctx *gin.Context) {
+	bookId := ctx.Param("bookId")
+	authorId  := ctx.Param("authorId")
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"authorId": authorId,
+		"bookId": bookId,
+	})
 }
