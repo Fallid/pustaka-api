@@ -11,6 +11,8 @@ func main() {
 
 	router.GET("/", rootHandler)
 
+	router.GET("/book/:id", booksHandler)
+
 	router.Run(":3000")
 }
 
@@ -19,4 +21,9 @@ func rootHandler(ctx *gin.Context) {
 		"name": "Ahmad Naufal",
 		"bio":  "Software junior",
 	})
+}
+
+func booksHandler(ctx *gin.Context)  {
+	id := ctx.Param("id")
+	ctx.JSON(http.StatusOK, gin.H{"id": id})
 }
