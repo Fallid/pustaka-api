@@ -12,17 +12,20 @@ import (
 func main() {
 	router := gin.Default()
 
+	// Versioning routes with group
+	v1 := router.Group("/v1")
+	
 	// GET ROUTE
-	router.GET("/", rootHandler)
+	v1.GET("/", rootHandler)
 
-	router.GET("/book/:bookId", booksHandler)
+	v1.GET("/book/:bookId", booksHandler)
 
-	router.GET("/book/:bookId/author/:authorId", authorsHandler)
+	v1.GET("/book/:bookId/author/:authorId", authorsHandler)
 
-	router.GET("/query", queryHandler)
+	v1.GET("/query", queryHandler)
 
 	// POST ROUTE
-	router.POST("/book", postBookHandler)
+	v1.POST("/book", postBookHandler)
 
 	router.Run(":3000")
 }
