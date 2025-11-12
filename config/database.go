@@ -29,7 +29,7 @@ func SetupDatabase(config *Config) *gorm.DB {
 	log.Println("Database connection succeed")
 
 	// Auto migration
-	db.AutoMigrate(&models.Book{}, &models.User{})
+	db.AutoMigrate(&models.Book{}, &models.User{}, &models.Authentication{})
 
 	return db
 }

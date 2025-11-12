@@ -10,7 +10,6 @@ import (
 	"pustaka-api/validator"
 
 	"github.com/gin-gonic/gin"
-	validatorPkg "github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +22,17 @@ func NewBookHandler(service service.BookService) *BookHandler {
 }
 
 func (h *BookHandler) GetBooksHandler(ctx *gin.Context) {
-	result, err := h.service.FindAll()
+	// Get user_id from JWT context
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse{
+			Status: "error",
+			Error:  "User not authenticated",
+		})
+		return
+	}
+
+	result, err := h.service.FindAll(userID.(string))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse{
 			Status: "error",
@@ -43,11 +52,21 @@ func (h *BookHandler) GetBooksHandler(ctx *gin.Context) {
 func (h *BookHandler) GetBookByIdHandler(ctx *gin.Context) {
 	bookId := ctx.Param("bookId")
 
-	result, err := h.service.FindById(bookId)
+	// Get user_id from JWT context
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse{
+			Status: "error",
+			Error:  "User not authenticated",
+		})
+		return
+	}
+
+	result, err := h.service.FindById(bookId, userID.(string))
 	if err != nil {
 		// Check if error is record not found
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.Error(exception.NewAppError(http.StatusNotFound, "Book not found"))
+			ctx.Error(exception.NewAppError(http.StatusNotFound, "Book not found or you don't have access"))
 			return
 		}
 		ctx.Error(exception.ErrInternal)
@@ -66,11 +85,21 @@ func (h *BookHandler) PostBookHandler(ctx *gin.Context) {
 	var bookInput validator.BookPostRequest
 
 	err := ctx.ShouldBindBodyWithJSON(&bookInput)
- if utils.HandleValidationError(ctx, err) {
-     return
- }
+	if utils.HandleValidationError(ctx, err) {
+		return
+	}
 
-	createdBook, err := h.service.Create(bookInput)
+	// Get user_id from JWT context
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse{
+			Status: "error",
+			Error:  "User not authenticated",
+		})
+		return
+	}
+
+	createdBook, err := h.service.Create(bookInput, userID.(string))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse{
 			Status: "error",
@@ -93,30 +122,30 @@ func (h *BookHandler) UpdateBookHandler(ctx *gin.Context) {
 	bookId := ctx.Param("bookId")
 
 	err := ctx.ShouldBindBodyWithJSON(&bookRequest)
-	if err != nil {
-		var ve validatorPkg.ValidationErrors
-		if errors.As(err, &ve) {
-			errorMessages := []string{}
-			for _, e := range ve {
-				errorMessage := fmt.Sprintf("Error on field %s, condition: %s", e.Field(), e.ActualTag())
-				errorMessages = append(errorMessages, errorMessage)
-			}
-			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse{
-				Status: "error",
-				Error:  errorMessages,
-			})
-			return
-		}
+	if utils.HandleValidationError(ctx, err) {
+		return
+	}
 
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse{
+	// Get user_id from JWT context
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse{
 			Status: "error",
-			Error:  err.Error(),
+			Error:  "User not authenticated",
 		})
 		return
 	}
 
-	updatedBook, err := h.service.Update(bookId, bookRequest)
+	updatedBook, err := h.service.Update(bookId, bookRequest, userID.(string))
 	if err != nil {
+		// Check if error is authorization error
+		if err.Error() == "unauthorized: you are not the owner of this book" {
+			ctx.JSON(http.StatusForbidden, utils.ErrorResponse{
+				Status: "error",
+				Error:  err.Error(),
+			})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse{
 			Status: "error",
 			Error:  err.Error(),
@@ -135,8 +164,26 @@ func (h *BookHandler) UpdateBookHandler(ctx *gin.Context) {
 func (h *BookHandler) DeleteBookHandler(ctx *gin.Context) {
 	bookId := ctx.Param("bookId")
 
-	err := h.service.Delete(bookId)
+	// Get user_id from JWT context
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse{
+			Status: "error",
+			Error:  "User not authenticated",
+		})
+		return
+	}
+
+	err := h.service.Delete(bookId, userID.(string))
 	if err != nil {
+		// Check if error is authorization error
+		if err.Error() == "unauthorized: you are not the owner of this book" {
+			ctx.JSON(http.StatusForbidden, utils.ErrorResponse{
+				Status: "error",
+				Error:  err.Error(),
+			})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse{
 			Status: "error",
 			Error:  err.Error(),

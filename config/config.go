@@ -8,15 +8,17 @@ import (
 )
 
 type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
-	DBTimezone string
-	ServerPort string
-	AppEnv     string
+	DBHost           string
+	DBPort           string
+	DBUser           string
+	DBPassword       string
+	DBName           string
+	DBSSLMode        string
+	DBTimezone       string
+	ServerPort       string
+	AppEnv           string
+	AccessTokenKey   string
+	RefreshTokenKey  string
 }
 
 func LoadConfig() *Config {
@@ -27,15 +29,17 @@ func LoadConfig() *Config {
 	}
 
 	config := &Config{
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "password"),
-		DBName:     getEnv("DB_NAME", "pustaka_api"),
-		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
-		DBTimezone: getEnv("DB_TIMEZONE", "Asia/Jakarta"),
-		ServerPort: getEnv("SERVER_PORT", "3000"),
-		AppEnv:     getEnv("APP_ENV", "development"),
+		DBHost:          getEnv("DB_HOST", "localhost"),
+		DBPort:          getEnv("DB_PORT", "5432"),
+		DBUser:          getEnv("DB_USER", "postgres"),
+		DBPassword:      getEnv("DB_PASSWORD", "password"),
+		DBName:          getEnv("DB_NAME", "pustaka_api"),
+		DBSSLMode:       getEnv("DB_SSLMODE", "disable"),
+		DBTimezone:      getEnv("DB_TIMEZONE", "Asia/Jakarta"),
+		ServerPort:      getEnv("SERVER_PORT", "3000"),
+		AppEnv:          getEnv("APP_ENV", "development"),
+		AccessTokenKey:  getEnv("ACCESS_TOKEN_KEY", "default-access-token-key"),
+		RefreshTokenKey: getEnv("REFRESH_TOKEN_KEY", "default-refresh-token-key"),
 	}
 
 	return config
